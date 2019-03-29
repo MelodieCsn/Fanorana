@@ -1,0 +1,47 @@
+import java.util.ArrayList;
+
+public class TableauPion {
+	ArrayList<Pion> T = new ArrayList <Pion>() ;
+	private int nbPionsBlancs;
+	private int nbPionsNoirs;
+	private int nbPions;
+	
+	public int getNbPions(){
+		return nbPions;
+	}
+	public void setNbPions(int nbPions){
+		this.nbPions = nbPions;
+	}
+	public int getNbPionsB(){
+		return nbPionsBlancs;
+	}
+	public void setNbPionsB(int nbB){
+		nbPionsBlancs = nbB;
+	}
+	public int getNbPionsN(){
+		return nbPionsNoirs;
+	}
+	public void setNbPionsN(int nbN){
+		nbPionsNoirs = nbN;
+	}
+	public int getIndPion(int x, int y){
+		for(int i=0; i < 44;i++){
+			if ((T.get(i).getX() == x) && (T.get(i).getY() == y)){
+				return i;
+			}
+		}
+		return 42;
+	}
+	public Pion getPion(int x, int y){
+		return T.get(getIndPion(x, y));
+	}
+	
+	public void supprPion(int x, int y){
+		T.remove(getIndPion(x, y));
+	}
+	
+	public void ajoutPion(Pion p){
+		T.add(p);
+	}
+
+}
