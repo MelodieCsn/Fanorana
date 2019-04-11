@@ -1,0 +1,242 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class Plateau {
+	ArrayList<Pion> P = new ArrayList <Pion>() ;
+	private int nbPionsBlancs;
+	private int nbPionsNoirs;
+	
+	
+	public int getNbPionsB(){
+		return nbPionsBlancs;
+	}
+	public void setNbPionsB(int nbB){
+		nbPionsBlancs = nbB;
+	}
+	public int getNbPionsN(){
+		return nbPionsNoirs;
+	} 
+	public void setNbPionsN(int nbN){
+		nbPionsNoirs = nbN;
+	}
+	public int getIndPion(int x, int y){
+				
+		for(int i=0; i < P.size();i++){
+			if ((P.get(i).getX() == x) && (P.get(i).getY() == y)){
+				return i;
+			}
+		}
+		return 2;
+	}
+	public Pion getPion(int x, int y){
+		return P.get(getIndPion(x, y));
+	}
+	public void supprPion(int x, int y){
+		P.remove(getIndPion(x, y));
+	}
+	
+	public void ajoutPion(Pion p){
+		P.add(p);
+	}
+	public int getTaille(){
+		return P.size();
+	}
+	
+	
+	
+	public void initPlateau(Plateau P){//méthode qui remplit l'arraylist avec les Pions de début de partie
+		//on commence par remplir les deux premières lignes de pions blancs
+		int x = 0;
+		P.setNbPionsB(22);
+		P.setNbPionsN(22);
+		while (x<9){
+			P.ajoutPion(new Pion(x,0,false, false));
+			x++;
+		}
+		int x1=0;
+		while (x1<9){
+			P.ajoutPion(new Pion(x1,1,false,false));
+			x1++;
+		}
+		//on remplit les deux dernières lignes de pions noirs
+		int x2=0;
+		while (x2<9){
+			P.ajoutPion(new Pion(x2,3,true,false));
+			x2++;
+		}
+		int x3=0;
+		while (x3<9){
+			P.ajoutPion(new Pion(x3,4,true,false));
+			x3++;
+		}
+		//On remplit 'manuellement' la ligne du milieu
+		P.ajoutPion(new Pion(0,2,false,false));
+		P.ajoutPion(new Pion(1,2,true,false));
+		P.ajoutPion(new Pion(2,2,false,false));
+		P.ajoutPion(new Pion(3,2,true,false));
+		P.ajoutPion(new Pion(5,2,false,false));
+		P.ajoutPion(new Pion(6,2,true,false));
+		P.ajoutPion(new Pion(7,2,false,false));
+		P.ajoutPion(new Pion(8,2,true,false));
+
+	}
+
+
+	public boolean pionPresent(int x,int y){
+		boolean res=false;
+		for(int i=0; i < P.size(); i++){
+			if((x==P.get(i).getX()) && (y==P.get(i).getY())){
+				res = true;
+			}
+		}
+		return res;
+	}
+	public boolean pionOpposePresent(int x, int y, Pion p, Plateau T){ //x et y sont les coordonnées où on pourrait avoir un pion à percuter ou à aspirer
+
+		return (pionPresent(x,y) && (T.getPion(x,y).getCouleur()  !=   p.getCouleur()));
+	}	//On vérifie qu'il y a un pion à cet emplacement et qu'il est de couleur opposée à celle du pion qu'on a déplacé
+
+
+	boolean peutBouger(int x,int y, Pion p){ //on suppose que l'utilisateur nous a donné le pion a déplacer et les coordonnées où il souhaite le déplacer grâce à l'interface graphique
+		if(p.getX()%2 == p.getY()%2){// si peut bouger en diagonales
+			return (!(x>8 || x<0 || y<0 || y>4 || pionPresent(x,y)));
+		}
+		else{
+			return (!(x>8 || x<0 || y<0 || y>4 || pionPresent(x,y) || (x==p.getX()+1 && y==p.getY()+1) || (x==p.getX()+1 && y==p.getY()-1) || (x==p.getX()-1 && y==p.getY()+1) || (x==p.getX()-1 && y==p.getY()-1)));
+		}  //on renvoie faux quand les coordonnées demandées sont en diagonales en + des autres contraintes
+	}
+
+
+	public void deplacer(int x,int y,Pion p){
+		if(peutBouger(x,y,p)){
+			p.setX(x);
+			p.setY(y);
+			}
+		else{
+			System.out.println(" erreur en disant que c'est soit parce qu'il y a un pion sur la case, soit qu'on est hors terrain");
+		}
+	}
+
+
+	public void avancer(int x, int y, Pion p, Plateau T){
+		//on suppose que le joueur a cliqué sur le pion qu'il veut déplacer, 
+		//et qu'il a cliqué sur l'endroit où il veut aller, ce qui nous donne les paramètres de la méthode
+		Scanner sc = new Scanner(System.in);
+		
+		if (peutBouger(x,y,p)){
+			int valx=p.getX();//on stocke les anciennes coordonnées du pion
+			int valy=p.getY();
+			deplacer(x,y,p);//on déplace le pion, donc on set les coordonnées à d'autres valeurs
+			int deltax=p.getX()-valx;//on calcule la distance entre les anciennes et les nouvelles coordonnées
+			int deltay=p.getY()-valy;
+			int val1x=p.getX();
+			int val1y=p.getY(); //on stocke les nouvelles coordonnées du pion
+
+			if(pionOpposePresent(p.getX()+deltax,p.getY()+deltay,p,T) && pionOpposePresent(valx-deltax,valy-deltay,p,T)){
+							System.out.println("percuter ou aspirer ?  (p pour percuter, a pour aspirer)");
+							String str = sc.nextLine();
+							if(str == "p"){
+								percuter(x, y, val1x, val1y, T, deltax, deltay);
+							}
+							else if (str == "a"){
+								aspirer (x, y, valx, valy, T, deltax, deltay);
+							}
+							else{
+								System.out.println("erreur de saisie");
+							}
+				}
+			
+			else if (pionOpposePresent(val1x+deltax,val1y+deltay,p,T)){
+				percuter(x, y, val1x, val1y, T, deltax, deltay);
+			}
+			else {
+				aspirer (x, y, valx, valy, T, deltax, deltay);
+			}
+		}
+
+	}
+
+	public void aspirer(int x,int y,int valx,int valy,Plateau T,int deltax,int deltay){
+		while(valx<8 && valx>0 && valy>0 && valy<4){
+			mangerPion(valx -deltax, valy-deltay, T);
+			if(T.getPion(valx -deltax, valy-deltay).getCouleur()==false){
+				T.setNbPionsB(T.getNbPionsB()-1);
+			}
+			else{
+				T.setNbPionsN(T.getNbPionsN()-1);
+			}
+			valx=valx-deltax;
+			valy=valy-deltay;
+
+		}
+	}
+
+	public void percuter(int x,int y,int val1x,int val1y,Plateau T,int deltax,int deltay){
+		while(val1x<8 && val1x>0 && val1y>0 && val1y<4){
+			mangerPion(val1x + deltax, val1y + deltay, T);
+			if(T.getPion(val1x + deltax, val1y + deltay).getCouleur()==false){
+				T.setNbPionsB(T.getNbPionsB()-1);
+			}
+			else{
+				T.setNbPionsN(T.getNbPionsN()-1);
+			}
+			val1x=val1x+deltax;
+			val1y=val1y+deltay;
+
+		}
+	}
+
+	public void mangerPion(int x, int y, Plateau T){
+		T.supprPion(x,y);
+	}
+	
+	public boolean peutJouer(int x, int y,Pion p, Plateau T){
+		int valx=p.getX();//on stocke les anciennes coordonnées du pion
+		int valy=p.getY();
+		deplacer(x,y,p);//on déplace le pion, donc on set les coordonnées à d'autres valeurs
+		int deltax=p.getX()-valx;//on calcule la distance entre les anciennes et les nouvelles coordonnées
+		int deltay=p.getY()-valy;
+		return((!pionOpposePresent(p.getX()+deltax,p.getY()+deltay,p,T) && pionOpposePresent(valx-deltax,valy-deltay,p,T)) || (x==valx && y==valy));
+	}
+	
+
+	public void afficherPlateau(Plateau T){
+		for(int i=0; i<5; i++){
+			for(int j=0; j<9 ;j++){
+				if(pionPresent(j,i)){
+					if(T.getPion(j, i).getCouleur()==false){
+						System.out.print("0 ");
+					}
+					else{
+						System.out.print("X ");
+					}
+				}
+				else{
+					System.out.print(". ");
+				}
+			}
+			System.out.print("\n");
+		}
+		System.out.print("\n");
+	}
+	
+//	public void Partie2Joueurs(Terrain Terr){
+//		Terr.initPlateau(Terr.T);
+//		Terr.afficherPlateau(Terr.T);
+//		while(Terr.T.getNbPionsB()>0 || Terr.T.getNbPionsB()>0 ){
+//			System.out.print("choisissez le pion que vous voulez déplacer");
+//			
+//		}
+//	}
+
+	public static void main(String[] args){//test pour aspirer, on deplace un pion noir puis on le fait avancer de façon à aspirer les pions blancs sur la colonne (4)
+		Plateau P = new Plateau();
+		P.initPlateau(P);
+		//Terr.afficherPlateau(Terr.T);
+		System.out.println("Pion présent en 1.1 ?  "+P.pionPresent(1,1));		//Terr.avancer(4,2,Terr.T.getPion(4,3),Terr.T);
+		//Terr.afficherPlateau(Terr.T);
+		
+
+	}
+
+}
